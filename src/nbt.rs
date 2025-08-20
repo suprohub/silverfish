@@ -81,26 +81,24 @@ impl NbtString {
 }
 
 impl Block {
-    /// Tries to create a new block from it's id.  
-    ///
-    /// Fails if the id is an invalid [`Mutf8String`]  
+    /// Creates a new block from it's id.  
     ///
     /// Auto populates into minecraft namespace if no namespace was given
     ///
     /// ## Example
     /// ```
     /// # use silverfish::Block;
-    /// let beacon = Block::try_new("beacon")?;
+    /// let beacon = Block::new("beacon");
     /// # Ok::<(), silverfish::Error>(())
     /// ```
-    pub fn try_new<B: Into<Name>>(block: B) -> Result<Self> {
-        Ok(Block {
+    pub fn new<B: Into<Name>>(block: B) -> Self {
+        Block {
             name: block.into(),
             properties: None,
-        })
+        }
     }
 
-    /// Tries to create a new block from it's id and properties
+    /// Creates a new block from it's id and properties
     ///
     /// Auto populates into minecraft namespace if no namespace was given
     ///
@@ -125,19 +123,6 @@ impl Block {
             name: block.into(),
             properties: Some(props),
         })
-    }
-
-    /// Creates a new block from just an id
-    ///
-    /// Auto populates into minecraft namespace if no namespace was given
-    ///
-    /// ## Example
-    /// ```
-    /// # use silverfish::Block;
-    /// let beacon = Block::new("beacon");
-    /// ```
-    pub fn new<B: Into<Name>>(block: B) -> Self {
-        Self::try_new(block).unwrap()
     }
 
     /// Creates a new block
@@ -300,7 +285,7 @@ mod test {
 
     #[test]
     fn new_block() -> Result<()> {
-        let block = Block::try_new("minecraft:air")?;
+        let block = Block::new("minecraft:air");
         assert_eq!(block.name, "minecraft:air");
         assert_eq!(block.properties, None);
         Ok(())
@@ -308,7 +293,7 @@ mod test {
 
     #[test]
     fn no_namespace_block() -> Result<()> {
-        let block = Block::try_new("furnace")?;
+        let block = Block::new("furnace");
         assert_eq!(block.name, "furnace");
         Ok(())
     }
@@ -340,7 +325,7 @@ mod test {
 
     #[test]
     fn simple_nbt_block_compare() -> Result<()> {
-        let block = Block::try_new("minecraft:terracotta")?;
+        let block = Block::new("minecraft:terracotta");
         let nbt = NbtCompound::from_values(vec![(
             "Name".into(),
             NbtTag::String("minecraft:terracotta".into()),
@@ -370,7 +355,7 @@ mod test {
 
     #[test]
     fn block_to_nbt() -> Result<()> {
-        let block = Block::try_new("minecraft:redstone_block")?;
+        let block = Block::new("minecraft:redstone_block");
         let block_nbt = block.to_compound()?;
         let ref_nbt = NbtCompound::from_values(vec![(
             "Name".into(),
@@ -418,7 +403,7 @@ mod test {
 
     #[test]
     fn compare_block_against_nbt() -> Result<()> {
-        let block = Block::try_new("minecraft:beacon")?;
+        let block = Block::new("minecraft:beacon");
         let nbt = NbtCompound::from_values(vec![(
             "Name".into(),
             NbtTag::String("minecraft:beacon".into()),

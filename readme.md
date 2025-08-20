@@ -19,10 +19,10 @@ cargo add silverfish
 
 ### Set block
 
-When calling `Region::set_block`, it won't actually write the changes to the chunks.  
+When calling [`Region::set_block`], it won't actually write the changes to the chunks.  
 But instead write it to an internal buffer that also prevents duplicate blocks.  
 *If a block is already present on some coordinates in the buffer, set_block returns a `None`*  
-To actually flush the block changes to the chunks, call `Region::write_blocks`
+To actually flush the block changes to the chunks, call [`Region::write_blocks`]
 
 
 ```rust
@@ -42,7 +42,7 @@ Ok::<(), silverfish::Error>(())
 ### Get block
 
 You can retrieve blocks in batches or single call.  
-Use `Region::get_blocks` with a list of coordinates to batch them together.  
+Use [`Region::get_blocks`] with a list of coordinates to batch them together.  
 
 
 ```rust ,no_run
@@ -65,7 +65,7 @@ So to set a cell to a specific biome you have to specify:
 - Cell within the section  
 
 Or you can just call it with tuple: `(52, 12, 62)` with region local coordinates.  
-As it implements `Into<BiomeCell>` and will convert it for you.  
+As it implements `Into<`[`BiomeCell`]`>` and will convert it for you.  
 
 ```rust
 // Set a biome cell
@@ -91,7 +91,7 @@ Ok::<(), silverfish::Error>(())
 ### Block properties
 
 Blocks can have any property attached to them.  
-The `Block` comes with both `new` & `new_with_props` and a `try` version that returns a result.  
+A [`Block`] can be created via [`Block::new`] or [`Block::try_new_with_props`]/[`Block::new_with_props`].  
 
 ```rust
 use silverfish::Block;
@@ -108,9 +108,9 @@ Look futher down under `performance` for more information on block names and the
 
 ### Region
 
-A `Region` is the main object you will work with to apply changes and read data.  
+A [`Region`] is the main object you will work with to apply changes and read data.  
 And can be constructed via 4 different methods.  
-Note that the last argument for any `Region` constructor is the region coordinates.  
+Note that the last argument for any [`Region`] constructor is the region coordinates.  
 
 ```rust ,ignore
 use silverfish::Region;
@@ -131,8 +131,8 @@ let region = Region::from_region(...)?;
 
 ### Config
 
-A config can be specified in the `Region` to dictate how it should write blocks.  
-The most notable one is `update_lighting` which structures the chunks in so that  
+A config can be specified in the [`Region`] to dictate how it should write blocks.  
+The most notable one is [`Config::update_lighting`] which structures the chunks in so that  
 Minecraft will automatically update the lighting in the chunks on first reload.  
 *(which is set to true by default)*
 
@@ -153,7 +153,7 @@ Ok::<(), silverfish::Error>(())
 > [!NOTE]  
 > Do note that all of these coordinates used above is local to the **region** *(x=0..512, z=0..512)*.  
 > To transform normal *global* world coordinates to local region coordinates.  
-> You can pass them through `silverfish::to_region_local`.  
+> You can pass them through [`silverfish::to_region_local`].  
 
 ## Performance
 
@@ -163,8 +163,8 @@ as the user can do to modify your world even faster than before.
 
 ### Namespaced Blocks
 
-When you construct a `Block`, you may notice that the id argument you give is `B: Into<Name>`.  
-`Name` is an enum which can either be `Name::Namespaced` or `Name::Id`, this tells the block if it begins with  
+When you construct a [`Block`], you may notice that the id argument you give is `B: Into<`[`Name`]`>`.  
+[`Name`] is an enum which can either be [`Name::Namespaced`] or [`Name::Id`], this tells the block if it begins with  
 a namespace or not. A namespace is the `minecraft:` part of an id (`minecraft:furnace`, for example).  
 And if you know that your block has a namespace in it you can safetely construct a `Name` with a namespace.  
 
@@ -172,22 +172,22 @@ And if you know that your block has a namespace in it you can safetely construct
 use silverfish::{Block, Name};
 
 let name = Name::new_namespace("minecraft:bell");
-let block = Block::try_new(name)?;
+let block = Block::new(name);
 
 Ok::<(), silverfish::Error>(())
 ```
 
 Namespaces are not strictly *required* but heavily recommended incase  
 blocks would collide in let's say modded enviroments.  
-If you create a new `Block` with just a `&str` it will default to an `Name::Id` .  
+If you create a new [`Block`] with just a `&str` it will default to an [`Name::Id`] .  
 And automatically convert it to a namespaced variant if it doesn't contain a namespace on NBT write.  
 
 ### Pre-allocating internal buffers
 
 If you already know which chunks and sections within your region  
 that you will modify, it helps to preallocate those internal buffers.  
-Since calling `region.set_block(...)` doesn't actually write the changes.  
-We store the blocks in internal buffers until `region.write_blocks` is called.  
+Since calling [`Region::set_block`] doesn't actually write the changes.  
+We store the blocks in internal buffers until [`Region::write_blocks`] is called.  
 
 ```rust
 use silverfish::Region;
@@ -199,12 +199,12 @@ region.set_block((6, 1, 7), "birch_planks");
 // ...
 ```
 
-Note that calling `allocate_block_buffer` or `allocate_biome_buffer`  
+Note that calling [`Region::allocate_block_buffer`] or [`Region::allocate_biome_buffer`]  
 resets all internal buffers related to blocks.  
-So if you've called `set_block` before preallocating, all of that is gone.  
+So if you've called [`Region::set_block`] before preallocating, all of that is gone.  
 
 If you need sparsed preallocation that isn't within a specific chunk range.  
-Look at `region.set_block_buffer` & `region.set_biome_buffer` to manage it yourself.  
+Look at [`region.set_block_buffer`] & [`region.set_biome_buffer`] to manage it yourself.  
 
 ### Batching
 
@@ -275,10 +275,10 @@ set blocks within the same region in parallel.
 Below is an example using `rayon` to iterate over 32 chunks,  
 and placing a furnace at `0, 0, 0` in each chunk.  
 
-`region.write_blocks()?` is already parallel internally,  
+[`Region::write_blocks`] is already parallel internally,  
 So no need to try and call it within the `par_iter`.  
-If wish to skip the internal parallel of `region.write_blocks()?`:  
-You can call `write_blocks(...)?` on each chunk and manage it yourself.  
+If wish to skip the internal parallel of [`Region::write_blocks`]:  
+You can call [`ChunkData::write_blocks`] on each chunk and manage it yourself.  
 
 ```rust
 use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
@@ -301,8 +301,8 @@ Ok::<(), silverfish::Error>(())
 ### Set Sections
 
 If you know that you will fill, let's say an entire region with a single block.  
-It is over 10x times faster to do it via `region.set_sections`.  
-This function and it's brother (`set_section`), allows you to set an entire  
+It is over 10x times faster to do it via [`Region::set_sections`].  
+This function and it's brother ([`Region::set_section`]), allows you to set an entire  
 section *(4096 blocks, 16\*16\*16)* to a single block at once.  
 
 ```rust
@@ -335,12 +335,12 @@ They are *fun*.
 
 On my machine (Ryzen 7 5800X) and in release mode.  
 Have gotten a throughput of **162,360,154** blocks per second when writing to the chunks NBT.  
-*(1,290,555,076 b/s if doing one block per section via `set_sections`)*  
+*(1,290,555,076 b/s if doing one block per section via [`Region::set_sections`])*  
 
 The scenario was writing *100,663,296* blocks (an entire region) that only contained the same block.  
 So this got the maximum amount of palette caches hit and least clean up internally.  
 This was also with the entire region preallocated within the internal buffers.  
-And didn't use `set_section` or `set_sections` which is faster in real world use.  
+And didn't use [`Region::set_section`] or [`Region::set_sections`] which is faster in real world use.  
 Those 100 million or so blocks took *650ms~* or so to flush from the buffers to NBT. 
 
 Even if real world examples are slower, it is quite fast enough for 99% of people.  

@@ -186,4 +186,47 @@ impl ChunkData {
             dirty_biomes: false,
         }
     }
+
+    /// Checks if there exists a [`Block`] in the internal buffer at [`Coords`]
+    pub fn buffer_contains_block<C>(&self, coords: C) -> bool
+    where
+        C: Into<Coords>,
+    {
+        let coords: Coords = coords.into();
+        self.seen_blocks.contains(self.get_block_index(&coords))
+    }
+
+    /// Checks if there exists a [`NbtString`] (biome) in the internal buffer at [`BiomeCell`]
+    pub fn buffer_contains_biome<C>(&self, cell: C) -> bool
+    where
+        C: Into<BiomeCell>,
+    {
+        let cell: BiomeCell = cell.into();
+        self.seen_biomes.contains(self.get_biome_index(&cell))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::Region;
+
+    #[test]
+    fn buffer_contains_block() -> Result<()> {
+        let region = Region::default();
+
+        let mut chunk = region.get_chunk_mut(5, 1)?;
+        let none = chunk.buffer_contains_block((0, 1, 8));
+        assert!(none == false);
+
+        chunk.set_block((6, 1, 8), "minecraft:furnace")?;
+        let some = chunk.buffer_contains_block((6, 1, 8));
+        assert!(some);
+
+        chunk.write_blocks((5, 1), region.get_config())?;
+        let none = chunk.buffer_contains_block((6, 1, 8));
+        assert!(none == false);
+
+        Ok(())
+    }
 }

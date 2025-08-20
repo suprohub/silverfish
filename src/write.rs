@@ -484,13 +484,10 @@ mod test {
         region.set_section(
             (0, 0),
             2,
-            Block::try_new(Name::new_namespace("minecraft:beacon"))?,
+            Block::new(Name::new_namespace("minecraft:beacon")),
         )?;
         let beacon = region.get_block((5, 35, 11))?;
-        assert_eq!(
-            beacon,
-            Block::try_new(Name::new_namespace("minecraft:beacon"))?
-        );
+        assert_eq!(beacon, Block::new(Name::new_namespace("minecraft:beacon")));
 
         Ok(())
     }
@@ -499,7 +496,7 @@ mod test {
     fn full_region_set_section() -> Result<()> {
         let mut region = Region::default();
         let mut sections = Vec::with_capacity(24_576);
-        let block = Block::try_new(Name::new_namespace("minecraft:water"))?;
+        let block = Block::new(Name::new_namespace("minecraft:water"));
 
         for x in 0..32 {
             for y in -4..20 {

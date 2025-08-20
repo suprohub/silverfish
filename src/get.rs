@@ -1,8 +1,8 @@
 //! `get` contains functions related to getting blocks from a [`Region`].  
 
 use crate::{
-    BLOCKS_PER_REGION, BiomeCell, BiomeCellWithId, Block, CHUNK_OP, ChunkData, Config, Coords,
-    Error, NbtString, Region, Result,
+    BLOCKS_PER_REGION, BiomeCell, BiomeCellWithId, Block, BlockWithCoordinate, CHUNK_OP, ChunkData,
+    Config, Coords, Error, NbtString, Region, Result,
     biome::group_cells_into_chunks,
     data::decode_data,
     paletted_blocks::PalettedBlocks,
@@ -304,6 +304,77 @@ impl ChunkData {
 
         Ok(found_blocks)
     }
+
+    /// Returns a block that is inside the chunks internal buffer.  
+    ///
+    /// ## Example
+    /// ```
+    /// # let region = silverfish::Region::default();
+    /// let chunk = region.get_chunk_mut(0, 0)?;
+    /// let block = chunk.get_buffered_block((5, 1, 8));
+    /// assert_eq!(block, None);
+    /// # Ok::<(), silverfish::Error>(())
+    /// ```
+    pub fn get_buffered_block<C>(&self, coords: C) -> Option<&BlockWithCoordinate>
+    where
+        C: Into<Coords>,
+    {
+        let coords: Coords = coords.into();
+        assert!(coords.x < ChunkData::WIDTH as u32 && coords.z < ChunkData::WIDTH as u32);
+
+        let index = self.get_block_index(&coords);
+        if !self.seen_blocks.contains(index) {
+            return None;
+        }
+
+        let section_y = (coords.y as f64 / ChunkData::WIDTH as f64).floor() as i8;
+
+        // this unwrap is safe because of the above seen_blocks.contains check
+        let blocks = self.pending_blocks.get(&section_y).unwrap();
+        for block in blocks {
+            if block.coordinates == coords {
+                return Some(block);
+            }
+        }
+
+        // this is "unreachable" due to the above loop must contain the block
+        // because of the seen_blocks.contains check
+        unreachable!()
+    }
+
+    /// Returns a biome that is inside the chunks internal buffer.  
+    ///
+    /// ## Example
+    /// ```
+    /// # let region = silverfish::Region::default();
+    /// let chunk = region.get_chunk_mut(0, 0)?;
+    /// let block = chunk.get_buffered_biome((5, 1, 8));
+    /// assert_eq!(block, None);
+    /// # Ok::<(), silverfish::Error>(())
+    /// ```
+    pub fn get_buffered_biome<C>(&self, cell: C) -> Option<&NbtString>
+    where
+        C: Into<BiomeCell>,
+    {
+        let cell: BiomeCell = cell.into();
+
+        let index = self.get_biome_index(&cell);
+        if !self.seen_biomes.contains(index) {
+            return None;
+        }
+
+        // again this unwrap is safe because of the above seen_biomes.contains check
+        let biomes = self.pending_biomes.get(&cell.section).unwrap();
+        for biome in biomes {
+            if biome.cell == cell {
+                return Some(&biome.id);
+            }
+        }
+
+        // this is "unreachable" due to the above loop must contain the biome
+        // because of the seen_biomes.contains check
+        unreachable!()
+    }
 }
 
 pub struct GetChunkGroup {
@@ -438,5 +509,23 @@ mod test {
     fn invalid_get_coords() {
         let region = Region::default();
         assert!(region.get_block((852, 14, 5212)).is_err())
+    }
+
+    #[test]
+    fn get_buffered_blocks() -> Result<()> {
+        let region = Region::default();
+
+        let mut chunk = region.get_chunk_mut(0, 1)?;
+        chunk.set_block((7, 1, 1), "minecraft:smooth_stone")?;
+
+        let block = chunk.get_buffered_block((7, 1, 1));
+        assert!(block.is_some());
+
+        chunk.write_blocks((0, 0), region.get_config())?;
+
+        let block = chunk.get_buffered_block((7, 1, 1));
+        assert!(block.is_none());
+
+        Ok(())
     }
 }

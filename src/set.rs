@@ -164,7 +164,7 @@ mod test {
     fn pre_set_block() -> Result<()> {
         let mut region = Region::default();
         region
-            .set_block((1, 2, 3), Block::try_new("minecraft:red_stained_glass")?)?
+            .set_block((1, 2, 3), Block::new("minecraft:red_stained_glass"))?
             .unwrap();
 
         assert_eq!(region.get_raw_chunk(0, 0)?.unwrap().pending_blocks.len(), 1);
@@ -184,15 +184,10 @@ mod test {
     fn set_duplicate_block() -> Result<()> {
         let mut region = Region::default();
         region
-            .set_block(
-                (52, -5, 395),
-                Block::try_new("minecraft:red_stained_glass")?,
-            )?
+            .set_block((52, -5, 395), Block::new("minecraft:red_stained_glass"))?
             .unwrap();
-        let success = region.set_block(
-            (52, -5, 395),
-            Block::try_new("minecraft:lime_stained_glass")?,
-        )?;
+        let success =
+            region.set_block((52, -5, 395), Block::new("minecraft:lime_stained_glass"))?;
 
         assert_eq!(success, None);
         assert_eq!(
@@ -215,7 +210,7 @@ mod test {
     fn set_block() -> Result<()> {
         let mut region = Region::default();
         region
-            .set_block((6, 52, 95), Block::try_new("minecraft:oak_planks")?)?
+            .set_block((6, 52, 95), Block::new("minecraft:oak_planks"))?
             .unwrap();
 
         assert_eq!(region.get_raw_chunk(0, 5)?.unwrap().pending_blocks.len(), 1);
@@ -232,12 +227,9 @@ mod test {
 
         assert_eq!(
             region.get_block((6, 52, 95))?,
-            Block::try_new("minecraft:oak_planks")?
+            Block::new("minecraft:oak_planks")
         );
-        assert_eq!(
-            region.get_block((52, 1, 5))?,
-            Block::try_new("minecraft:air")?
-        );
+        assert_eq!(region.get_block((52, 1, 5))?, Block::new("minecraft:air"));
 
         assert_eq!(region.get_raw_chunk(0, 5)?.unwrap().pending_blocks.len(), 0);
         assert_eq!(
