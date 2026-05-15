@@ -24,7 +24,7 @@ impl Region {
             .filter(|c| c.dirty_blocks)
             .try_for_each(|mut ref_mut| {
                 let coords = *ref_mut.key();
-                ref_mut.write_blocks(coords, &self.get_config())
+                ref_mut.write_blocks(coords, self.get_config())
             })?;
 
         Ok(())
@@ -62,7 +62,7 @@ impl Region {
         section: i8,
         block: B,
     ) -> Result<()> {
-        Ok(self.set_sections(vec![(chunk, section, block)])?)
+        self.set_sections(vec![(chunk, section, block)])
     }
 
     /// Set an entire section (16\*16\*16) to one single [`Block`].  
@@ -99,7 +99,7 @@ impl Region {
                 let mut chunk_data = self.get_chunk_mut(chunk_coords.0, chunk_coords.1)?;
                 let nbt = &mut chunk_data.nbt;
 
-                is_valid_chunk(&nbt, chunk_coords)?;
+                is_valid_chunk(nbt, chunk_coords)?;
 
                 // clear heightmaps if they exist since they can become outdated after this
                 if let Some(height_maps) = nbt.compound_mut("Heightmaps") {
@@ -210,7 +210,7 @@ impl ChunkData {
 
         //  missing chunk etc is set via /set_block since pending is in chunks
         let nbt = &mut self.nbt;
-        is_valid_chunk(&nbt, chunk_coords)?;
+        is_valid_chunk(nbt, chunk_coords)?;
 
         // clear heightmaps if they exist since they can become outdated after this
         if let Some(height_maps) = nbt.compound_mut("Heightmaps") {
@@ -332,9 +332,8 @@ impl ChunkData {
                 old_indexes[index] = palette_index;
 
                 // if block entity at these coords, mark for deletion
-                match block_entity_cache.get_mut(&(x as i32, y, z as i32)) {
-                    Some(be) => *be = true,
-                    None => (),
+                if let Some(be) = block_entity_cache.get_mut(&(x as i32, y, z as i32)) {
+                    *be = true
                 };
             }
 
@@ -348,10 +347,7 @@ impl ChunkData {
                 let y = be.int("y").unwrap() & CHUNK_OP;
                 let z = be.int("z").unwrap() & CHUNK_OP;
 
-                match block_entity_cache.get(&(x, y, z)) {
-                    Some(delete) if *delete => false,
-                    _ => true,
-                }
+                !matches!(block_entity_cache.get(&(x, y, z)), Some(delete) if *delete)
             });
             block_entity_cache.clear();
 
@@ -384,7 +380,7 @@ impl ChunkData {
         let mut cached_palette_indexes: AHashMap<NbtString, i64> = AHashMap::new();
 
         let nbt = &mut self.nbt;
-        is_valid_chunk(&nbt, chunk_coords)?;
+        is_valid_chunk(nbt, chunk_coords)?;
 
         let sections: &mut Vec<NbtCompound> = match nbt
             .list_mut("sections")

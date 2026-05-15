@@ -176,7 +176,7 @@ impl ChunkData {
     pub fn new(nbt: NbtCompound, world_height: Range<isize>) -> ChunkData {
         let world_height_count = world_height.clone().count();
         ChunkData {
-            nbt: nbt,
+            nbt,
             world_height: world_height.clone(),
             pending_blocks: AHashMap::new(),
             pending_biomes: AHashMap::new(),
@@ -217,7 +217,7 @@ mod test {
 
         let mut chunk = region.get_chunk_mut(5, 1)?;
         let none = chunk.buffer_contains_block((0, 1, 8));
-        assert!(none == false);
+        assert!(!none);
 
         chunk.set_block((6, 1, 8), "minecraft:furnace")?;
         let some = chunk.buffer_contains_block((6, 1, 8));
@@ -225,7 +225,7 @@ mod test {
 
         chunk.write_blocks((5, 1), region.get_config())?;
         let none = chunk.buffer_contains_block((6, 1, 8));
-        assert!(none == false);
+        assert!(!none);
 
         Ok(())
     }

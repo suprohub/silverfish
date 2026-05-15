@@ -148,10 +148,7 @@ impl<'a> PalettedBlocks<'a> {
     /// Converts all the blocks into a list of [`BlockWithCoordinate`]
     pub fn get_all(&self) -> Vec<BlockWithCoordinate> {
         self.into_iter()
-            .map(|(coordinates, block)| BlockWithCoordinate {
-                coordinates: coordinates,
-                block,
-            })
+            .map(|(coordinates, block)| BlockWithCoordinate { coordinates, block })
             .collect()
     }
 
@@ -271,10 +268,7 @@ impl<'a> PalettedBlocks<'a> {
     where
         C: Into<Coords>,
     {
-        Ok(self
-            .get_raw(coords)
-            .map(|c| Block::from_compound(c))
-            .transpose()?)
+        self.get_raw(coords).map(Block::from_compound).transpose()
     }
 
     /// Returns the raw [`Block`] [Nbt](NbtCompound) if a block in the list exists at these coordinates.  
@@ -380,7 +374,7 @@ impl<'a> PalettedBlocks<'a> {
                 index: palette_index as usize,
             })?;
 
-        Ok(Block::from_compound(block)?)
+        Block::from_compound(block)
     }
 
     /// Takes in a list of blocks and creating a NBT palette list from it.  
@@ -399,13 +393,13 @@ impl<'a> PalettedBlocks<'a> {
     where
         B: Into<Block>,
     {
-        Ok(blocks
+        blocks
             .into_iter()
             .map(|b| {
                 let block: Block = b.into();
                 block.to_compound()
             })
-            .collect::<Result<Vec<NbtCompound>>>()?)
+            .collect::<Result<Vec<NbtCompound>>>()
     }
 
     /// Merges multiple [`PalettedBlocks`] into one.  
@@ -453,10 +447,7 @@ impl<'a> Iterator for PalettedBlocksIntoIter<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         // we can just hijack the iter for enabled bits on the placed_blocks bitset.
         // way way WAYY faster than iterating over `blocks` and checking if its u32::MAX etc.
-        let index = match self.placed_iter.next() {
-            Some(i) => i,
-            None => return None,
-        };
+        let index = self.placed_iter.next()?;
 
         let coords =
             PalettedBlocks::to_coords(self.blocks.bottom_y, self.blocks.width, index as u32);
@@ -478,7 +469,7 @@ impl<'a> Iterator for PalettedBlocksIntoIter<'a> {
             Err(_) => return None,
         };
 
-        return Some((coords, block));
+        Some((coords, block))
     }
 }
 
@@ -489,7 +480,7 @@ impl<'a> IntoIterator for &'a PalettedBlocks<'a> {
 
     fn into_iter(self) -> Self::IntoIter {
         PalettedBlocksIntoIter {
-            blocks: &self,
+            blocks: self,
             placed_iter: self.placed_blocks.ones(),
         }
     }
