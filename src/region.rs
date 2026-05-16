@@ -197,8 +197,8 @@ impl Region {
         let mut region_writer = RegionWriter::new();
 
         for ((x, z), mut chunk_data) in self.chunks {
-            chunk_data.nbt.insert("xPos", NbtTag::Int(self.region_coords.0 * mca::REGION_SIZE as i32 + x as i32));
-            chunk_data.nbt.insert("zPos", NbtTag::Int(self.region_coords.1 * mca::REGION_SIZE as i32 + z as i32));
+            chunk_data.nbt.insert("xPos", NbtTag::Int(x as i32));
+            chunk_data.nbt.insert("zPos", NbtTag::Int(z as i32));
             let mut raw_nbt = vec![];
             let wrapped = Nbt::Some(BaseNbt::new("", chunk_data.nbt));
             wrapped.write(&mut raw_nbt);
