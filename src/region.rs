@@ -196,9 +196,7 @@ impl Region {
     pub fn write<W: Write>(self, writer: &mut W) -> Result<()> {
         let mut region_writer = RegionWriter::new();
 
-        for ((x, z), mut chunk_data) in self.chunks {
-            chunk_data.nbt.insert("xPos", NbtTag::Int(x as i32));
-            chunk_data.nbt.insert("zPos", NbtTag::Int(z as i32));
+        for ((x, z), chunk_data) in self.chunks {
             let mut raw_nbt = vec![];
             let wrapped = Nbt::Some(BaseNbt::new("", chunk_data.nbt));
             wrapped.write(&mut raw_nbt);
