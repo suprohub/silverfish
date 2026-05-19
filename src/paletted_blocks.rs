@@ -5,7 +5,7 @@
 use crate::{Block, BlockWithCoordinate, Coords, Error, Result};
 use fixedbitset::{FixedBitSet, Ones};
 use simdnbt::owned::NbtCompound;
-use std::{ops::Range, u32};
+use std::ops::Range;
 
 /// This can become quite memory hungry when used on bigger areas of blocks at a time.  
 ///

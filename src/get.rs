@@ -56,7 +56,7 @@ fn find_blocks<'a, const N: usize>(
         // this is just so rust allows us to keep a ref outside this loop
         // since it deems that "chunk" and thus the palette data goes out
         // of scope and gets "drops" before this function returns.
-        let palette_ptr = palette as *const _ as *const [NbtCompound];
+        let palette_ptr = palette as *const _;
         let pal_index = found_blocks.insert_palette_only(unsafe { &*palette_ptr });
 
         for c in blocks_to_get {

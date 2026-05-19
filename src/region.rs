@@ -19,7 +19,7 @@ use simdnbt::owned::{BaseNbt, Nbt, NbtCompound, NbtList, NbtTag};
 use std::{
     fmt::Debug,
     io::{Cursor, Read, Write},
-    ops::{Deref, Range},
+    ops::Range,
 };
 
 /// An in-memory region to read and write blocks to the chunks within.  
@@ -453,30 +453,32 @@ pub(crate) fn is_valid_chunk(chunk: &NbtCompound, coordinate: (u8, u8)) -> Resul
 
 /// Removes unused elements from the palette and "cleans" it.  
 pub(crate) fn clean_palette<T>(data: &mut [i64], data_len: usize, palette: &mut Vec<T>) {
-    let mut palette_count: Vec<i32> = vec![0; palette.len()];
-    for index in data.deref() {
-        palette_count[*index as usize] += 1;
-    }
+    debug_assert!(data_len <= data.len());
 
-    let mut palette_offsets: Vec<i64> = vec![0; palette.len()];
+    let mut palette_count = vec![0; palette.len()];
+    data.iter()
+        .take(data_len)
+        .for_each(|&val| palette_count[val as usize] += 1);
 
-    let mut len = palette.len();
-    let mut i = len as i32 - 1;
-    while i >= 0 {
-        if palette_count[i as usize] == 0 {
-            palette.remove(i as usize);
-            len -= 1;
-
-            for j in (i as usize)..palette_count.len() {
-                palette_offsets[j] += 1;
-            }
+    let mut palette_offsets = vec![0; palette.len()];
+    let mut removed = 0i64;
+    for (i, count) in palette_count.iter().enumerate() {
+        palette_offsets[i] = removed;
+        if *count == 0 {
+            removed += 1;
         }
-        i -= 1;
     }
 
-    for block in 0..data_len {
-        data[block] -= palette_offsets[data[block] as usize];
-    }
+    data[..data_len]
+        .iter_mut()
+        .for_each(|val| *val -= palette_offsets[*val as usize]);
+
+    let mut idx = 0;
+    palette.retain(|_| {
+        let keep = palette_count[idx] > 0;
+        idx += 1;
+        keep
+    });
 }
 
 impl Default for Region {
