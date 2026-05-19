@@ -136,7 +136,8 @@ pub(crate) struct GetChunkGroup {
 }
 
 pub(crate) fn group_cells_into_chunks<C: Into<BiomeCell>>(cells: Vec<C>) -> Vec<GetChunkGroup> {
-    let mut map: AHashMap<(u8, u8), AHashMap<i8, Vec<BiomeCell>>> = AHashMap::new();
+    let mut map: AHashMap<(u8, u8), AHashMap<i8, Vec<BiomeCell>>> =
+        AHashMap::with_capacity(cells.len());
 
     for cell in cells.into_iter() {
         let cell: BiomeCell = cell.into();

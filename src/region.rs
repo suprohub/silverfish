@@ -123,7 +123,7 @@ impl Region {
 
     /// Creates a full [`Region`] with empty chunks in it.  
     pub fn full_empty(region_coords: (i32, i32)) -> Self {
-        let mut chunks = AHashMap::new();
+        let mut chunks = AHashMap::with_capacity(mca::REGION_SIZE * mca::REGION_SIZE);
 
         for x in 0..mca::REGION_SIZE as u8 {
             for z in 0..mca::REGION_SIZE as u8 {
@@ -168,7 +168,7 @@ impl Region {
         let region_reader = RegionReader::new(&bytes)?;
         let mut iter = region_reader.iter()?;
 
-        let mut chunks = AHashMap::new();
+        let mut chunks = AHashMap::with_capacity(mca::REGION_SIZE * mca::REGION_SIZE);
         while let Ok(Some(((x, z), chunk))) = iter.next_available_chunk() {
             let chunk_nbt = match simdnbt::owned::read(&mut Cursor::new(&chunk))? {
                 Nbt::Some(nbt) => nbt.as_compound(),

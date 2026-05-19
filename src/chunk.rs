@@ -175,11 +175,12 @@ impl ChunkData {
     /// Creates a new [`ChunkData`] with empty and cleared buffers.  
     pub fn new(nbt: NbtCompound, world_height: Range<isize>) -> ChunkData {
         let world_height_count = world_height.clone().count();
+        let section_count = world_height_count / ChunkData::WIDTH;
         ChunkData {
             nbt,
             world_height: world_height.clone(),
-            pending_blocks: AHashMap::new(),
-            pending_biomes: AHashMap::new(),
+            pending_blocks: AHashMap::with_capacity(section_count),
+            pending_biomes: AHashMap::with_capacity(section_count),
             seen_blocks: ChunkData::block_bitset(world_height_count),
             seen_biomes: ChunkData::biome_bitset(world_height_count),
             dirty_blocks: false,

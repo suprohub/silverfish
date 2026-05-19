@@ -206,7 +206,6 @@ impl ChunkData {
         // we keep these here since we re-use these to hold onto their memory allocations.
         let mut old_indexes: [i64; Region::BLOCK_DATA_LEN] = [0; Region::BLOCK_DATA_LEN];
         let mut cached_palette_indexes: AHashMap<Block, i64> = AHashMap::with_capacity(4);
-        let mut block_entity_cache: AHashMap<(i32, i32, i32), bool> = AHashMap::new();
 
         //  missing chunk etc is set via /set_block since pending is in chunks
         let nbt = &mut self.nbt;
@@ -244,6 +243,8 @@ impl ChunkData {
                 _ => return Err(Error::InvalidNbtList("block_entities")),
             }
         };
+
+        let mut block_entity_cache = AHashMap::with_capacity(block_entities.len());
 
         // a little cache so we can find the index directly and remove it instead of looking up the coords everytime
         for be in block_entities.iter() {
@@ -377,7 +378,7 @@ impl ChunkData {
     pub fn write_biomes(&mut self, chunk_coords: (u8, u8)) -> Result<()> {
         // keep these here to hold onto their memory allocations.
         let mut old_indexes: [i64; Region::BIOME_DATA_LEN] = [0; Region::BIOME_DATA_LEN];
-        let mut cached_palette_indexes: AHashMap<NbtString, i64> = AHashMap::new();
+        let mut cached_palette_indexes: AHashMap<NbtString, i64> = AHashMap::with_capacity(4);
 
         let nbt = &mut self.nbt;
         is_valid_chunk(nbt, chunk_coords)?;
